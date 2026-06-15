@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GYMFLOW — Planilha de Movimentos Ginásticos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:    #0D1B2A;
+      --paper:  #EFEFEF;
+      --chalk:  #F5C842;
+      --chalk2: #F9DC80;
+      --mid:    #2A3F55;
+      --muted:  #6B8099;
+      --line:   #D0D4D9;
+      --card:   #FFFFFF;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 2.5rem;
+      background: var(--ink);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.08em;
+      color: var(--paper);
+      text-decoration: none;
+    }
+    .logo span { color: var(--chalk); }
+
+    nav ul { display: flex; gap: 2.5rem; list-style: none; }
+    nav ul a {
+      color: rgba(239,239,239,0.55);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.06em;
+      transition: color .2s;
+    }
+    nav ul a:hover { color: var(--chalk); }
+
+    .btn {
+      display: inline-block;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.1em;
+      font-size: 1rem;
+      padding: 0.55rem 1.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+      border: none;
+    }
+    .btn-chalk {
+      background: var(--chalk);
+      color: var(--ink);
+    }
+    .btn-chalk:hover {
+      background: var(--chalk2);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245,200,66,0.4);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--paper);
+      border: 1px solid rgba(239,239,239,0.25);
+    }
+    .btn-ghost:hover {
+      border-color: var(--chalk);
+      color: var(--chalk);
+    }
+    .btn-ink {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .btn-ink:hover {
+      background: var(--mid);
+      transform: translateY(-1px);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 6rem 2.5rem 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* chalk dust texture via radial gradient */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(245,200,66,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 4rem;
+      align-items: end;
+    }
+
+    .hero-kicker {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      color: var(--chalk);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0.85;
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 9vw, 8rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      margin-bottom: 2rem;
+    }
+    h1 .accent { color: var(--chalk); }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: rgba(239,239,239,0.6);
+      max-width: 420px;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3.5rem; }
+
+    /* The skill tree preview floating card */
+    .skill-preview {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px 12px 0 0;
+      padding: 1.5rem;
+      align-self: end;
+    }
+    .sp-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--chalk);
+      margin-bottom: 1.25rem;
+      opacity: 0.7;
+    }
+    .skill-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .skill-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(239,239,239,0.7);
+      width: 130px;
+      flex-shrink: 0;
+    }
+    .skill-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--chalk);
+      width: 0%;
+      transition: width 1.2s cubic-bezier(.16,1,.3,1);
+    }
+    .skill-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--chalk);
+      width: 34px;
+      text-align: right;
+      opacity: 0;
+      transition: opacity .5s .8s;
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      background: var(--chalk);
+      overflow: hidden;
+      padding: 0.6rem 0;
+      white-space: nowrap;
+    }
+    .marquee-track {
+      display: inline-block;
+      animation: marquee 18s linear infinite;
+    }
+    .marquee-track span {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: var(--ink);
+      margin-right: 3rem;
+    }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── SECTIONS ── */
+    section { padding: 5.5rem 2.5rem; }
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .mono-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      margin-bottom: 1rem;
+    }
+    .sub { color: var(--muted); max-width: 460px; margin-bottom: 3rem; font-size: 0.95rem; }
+
+    /* ── WHAT'S INSIDE ── */
+    .inside-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .inside-item {
+      background: var(--card);
+      padding: 2rem 1.75rem;
+      transition: background .2s;
+    }
+    .inside-item:hover { background: #FAFAFA; }
+    .inside-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .inside-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+    .inside-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── MOVEMENTS ── */
+    .moves-section { background: var(--ink); color: var(--paper); }
+    .moves-section .mono-label { color: rgba(245,200,66,0.6); }
+    .moves-section .sub { color: rgba(239,239,239,0.5); }
+
+    .moves-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: rgba(255,255,255,0.06);
+    }
+    .moves-col {
+      background: rgba(255,255,255,0.02);
+      padding: 1.75rem;
+    }
+    .moves-col-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      color: var(--chalk);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(245,200,66,0.2);
+    }
+    .move-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: rgba(239,239,239,0.7);
+    }
+    .move-item:last-child { border-bottom: none; }
+    .move-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-basic { background: var(--muted); }
+    .dot-inter { background: var(--chalk); }
+    .dot-adv   { background: #FF6B35; }
+
+    /* ── PROGRESSION ── */
+    .prog-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    .prog-visual {
+      background: var(--ink);
+      border-radius: 8px;
+      padding: 2rem;
+      color: var(--paper);
+    }
+    .prog-mono {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--chalk);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.1em;
+    }
+    .prog-row {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .prog-move {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: rgba(239,239,239,0.65);
+    }
+    .prog-track {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--chalk);
+      border-radius: 99px;
+    }
+    .prog-weeks {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .prog-text h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 1rem;
+    }
+    .prog-text p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1rem; }
+
+    .feat-list { list-style: none; }
+    .feat-list li {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.5rem 0;
+      font-size: 0.875rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+    }
+    .feat-list li:last-child { border-bottom: none; }
+    .feat-list li::before {
+      content: '↗';
+      color: var(--chalk);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── PRICING ── */
+    .pricing-section { background: var(--ink); color: var(--paper); }
+    .pricing-section .sub { color: rgba(239,239,239,0.5); }
+
+    .pricing-card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(245,200,66,0.3);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .pricing-top {
+      background: var(--chalk);
+      color: var(--ink);
+      padding: 2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .pricing-top h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .pricing-top .price-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      line-height: 1;
+    }
+    .pricing-top .price-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: rgba(13,27,42,0.55);
+    }
+    .pricing-body { padding: 2rem 2.5rem; }
+    .pricing-item {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      font-size: 0.875rem;
+      color: rgba(239,239,239,0.75);
+      font-family: 'DM Mono', monospace;
+    }
+    .pricing-item:last-of-type { border-bottom: none; margin-bottom: 1.5rem; }
+    .check { color: var(--chalk); font-size: 0.9rem; }
+    .pricing-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: rgba(239,239,239,0.3);
+      text-align: center;
+      margin-top: 1rem;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .testi {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 1.5rem;
+      background: var(--card);
+    }
+    .testi-stars { color: var(--chalk); font-size: 0.8rem; margin-bottom: 0.75rem; }
+    .testi-text { font-size: 0.875rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.25rem; }
+    .testi-author { display: flex; align-items: center; gap: 0.75rem; }
+    .testi-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--chalk);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .testi-name { font-weight: 600; font-size: 0.85rem; }
+    .testi-tag { font-size: 0.75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+    /* ── FAQ ── */
+    .faq-list { max-width: 680px; }
+    .faq-item {
+      border-bottom: 1px solid var(--line);
+      padding: 1.25rem 0;
+    }
+    .faq-q {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-q::after { content: '+'; color: var(--muted); font-size: 1.2rem; font-weight: 400; }
+    .faq-a { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+
+    /* ── CTA FINAL ── */
+    .final-cta {
+      background: var(--chalk);
+      color: var(--ink);
+      text-align: center;
+      padding: 5rem 2.5rem;
+    }
+    .final-cta h2 { color: var(--ink); margin-bottom: 1rem; }
+    .final-cta p { color: rgba(13,27,42,0.6); max-width: 420px; margin: 0 auto 2rem; font-size: 0.95rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: rgba(239,239,239,0.35);
+      padding: 2rem 2.5rem;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+    }
+    footer a { color: rgba(239,239,239,0.35); text-decoration: none; }
+    footer a:hover { color: var(--chalk); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .skill-preview { display: none; }
+      .moves-columns { grid-template-columns: 1fr; }
+      .prog-grid { grid-template-columns: 1fr; }
+      nav ul { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">GYM<span>FLOW</span></a>
+  <ul>
+    <li><a href="#conteudo">CONTEÚDO</a></li>
+    <li><a href="#movimentos">MOVIMENTOS</a></li>
+    <li><a href="#preco">PREÇO</a></li>
+  </ul>
+  <a href="#preco" class="btn btn-chalk">Comprar Planilha</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-kicker">// planilha de progressão ginástica · crossfit + calistenia</div>
+      <h1>DO KIPPING<br>AO <span class="accent">MUSCLE-UP</span><br>STRICT</h1>
+      <p class="hero-desc">
+        A planilha que mapeia cada movimento ginástico — barras, argolas, paralelas e solo — com progressões semana a semana, do nível zero ao avançado.
+      </p>
+      <div class="hero-btns">
+        <a href="#preco" class="btn btn-chalk">Quero a planilha →</a>
+        <a href="#movimentos" class="btn btn-ghost">Ver movimentos</a>
+      </div>
+    </div>
+
+    <!-- Skill preview card -->
+    <div class="skill-preview">
+      <div class="sp-label">// PREVIEW — MUSCLE-UP PROGRESSION</div>
+      <div class="skill-row">
+        <div class="skill-name">Scapular Pull</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-fill" data-w="100"></div></div>
+        <div class="skill-pct">100%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Kipping Swing</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-fill" data-w="100"></div></div>
+        <div class="skill-pct">100%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Chest-to-Bar</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-fill" data-w="80"></div></div>
+        <div class="skill-pct">80%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Kipping Muscle-Up</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-fill" data-w="55"></div></div>
+        <div class="skill-pct">55%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Strict Muscle-Up</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-fill" data-w="20"></div></div>
+        <div class="skill-pct">20%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>MUSCLE-UP</span><span>HANDSTAND WALK</span><span>RING DIPS</span><span>TOES-TO-BAR</span>
+    <span>PISTOL SQUAT</span><span>L-SIT</span><span>BAR MU</span><span>RING MU</span>
+    <span>BUTTERFLY PULLUP</span><span>HSPU</span><span>FRONT LEVER</span><span>STRICT PRESS</span>
+    <!-- duplicate for infinite loop -->
+    <span>MUSCLE-UP</span><span>HANDSTAND WALK</span><span>RING DIPS</span><span>TOES-TO-BAR</span>
+    <span>PISTOL SQUAT</span><span>L-SIT</span><span>BAR MU</span><span>RING MU</span>
+    <span>BUTTERFLY PULLUP</span><span>HSPU</span><span>FRONT LEVER</span><span>STRICT PRESS</span>
+  </div>
+</div>
+
+<!-- O QUE TEM DENTRO -->
+<section id="conteudo" style="background: var(--paper);">
+  <div class="container">
+    <div class="mono-label">// o que está na planilha</div>
+    <h2>TUDO QUE VOCÊ<br>PRECISA PARA EVOLUIR</h2>
+    <p class="sub">Cada aba é uma categoria de movimento. Cada linha é uma semana de treino. Simples de usar, difícil de ignorar.</p>
+
+    <div class="inside-grid">
+      <div class="inside-item">
+        <span class="inside-icon">📊</span>
+        <div class="inside-title">Progressão Semanal</div>
+        <div class="inside-desc">Volume, séries e tipo de esforço para cada movimento, semana a semana, por até 16 semanas.</div>
+      </div>
+      <div class="inside-item">
+        <span class="inside-icon">🔗</span>
+        <div class="inside-title">Árvore de Pré-requisitos</div>
+        <div class="inside-desc">Sabe qual movimento desbloqueia o próximo? A planilha mostra o caminho completo antes de tentar.</div>
+      </div>
+      <div class="inside-item">
+        <span class="inside-icon">📏</span>
+        <div class="inside-title">Teste de Nível Inicial</div>
+        <div class="inside-desc">Protocolo de avaliação para descobrir exatamente onde você está antes de começar.</div>
+      </div>
+      <div class="inside-item">
+        <span class="inside-icon">⏱️</span>
+        <div class="inside-title">Tempo de Descanso e Frequência</div>
+        <div class="inside-desc">Cada skill tem sua lógica de recuperação. Sem adivinhar quantas vezes por semana treinar.</div>
+      </div>
+      <div class="inside-item">
+        <span class="inside-icon">📝</span>
+        <div class="inside-title">Log de Treino Integrado</div>
+        <div class="inside-desc">Anote reps, qualidade de execução e percepção de esforço direto na planilha. Tudo em um lugar.</div>
+      </div>
+      <div class="inside-item">
+        <span class="inside-icon">🎯</span>
+        <div class="inside-title">Drill de Qualidade</div>
+        <div class="inside-desc">Para cada movimento, uma lista de checkpoints técnicos para você saber se está pronto para avançar.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOVIMENTOS -->
+<section id="movimentos" class="moves-section">
+  <div class="container">
+    <div class="mono-label">// lista de movimentos cobertos</div>
+    <h2>+40 MOVIMENTOS<br>ORGANIZADOS POR SKILL</h2>
+    <p class="sub">De pulling a pressing, de solo a argolas. Cada movimento com sua própria trilha de progressão.</p>
+
+    <div class="moves-columns">
+      <div class="moves-col">
+        <div class="moves-col-title">// BARRA FIXA & ARGOLAS</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Scapular Pull-up</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Jumping Pull-up</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Band-assisted Pull-up</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Strict Pull-up</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Chest-to-Bar</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Kipping Pull-up</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Butterfly Pull-up</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Kipping Muscle-Up (Bar)</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Strict Muscle-Up (Bar)</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Kipping Muscle-Up (Ring)</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Strict Muscle-Up (Ring)</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Front Lever</div>
+      </div>
+
+      <div class="moves-col">
+        <div class="moves-col-title">// INVERSÃO & HANDSTAND</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Pike Shoulder Press</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Kick-up contra parede</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Wall Handstand Hold</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Freestanding Handstand</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>HSPU (Kipping)</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>HSPU (Strict)</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Handstand Walk</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Handstand Push-up Deficit</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Pirouette</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Press to Handstand</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Ring Handstand</div>
+      </div>
+
+      <div class="moves-col">
+        <div class="moves-col-title">// SOLO & PARALELAS</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Tuck L-Sit</div>
+        <div class="move-item"><span class="move-dot dot-basic"></span>Support Hold (Paralelas)</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>L-Sit</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Ring Dip (Kipping)</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Ring Dip (Strict)</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Toes-to-Bar</div>
+        <div class="move-item"><span class="move-dot dot-inter"></span>Pistol Squat</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>V-Sit</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Manna (progressão)</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Back Lever</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Planche Lean</div>
+        <div class="move-item"><span class="move-dot dot-adv"></span>Straddle Planche</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:1.5rem; margin-top:1.5rem; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:0.5rem; font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted);">
+        <span class="move-dot dot-basic" style="display:inline-block;width:8px;height:8px;border-radius:50%;"></span> Iniciante
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem; font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted);">
+        <span class="move-dot dot-inter" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--chalk);"></span> Intermediário
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem; font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted);">
+        <span class="move-dot dot-adv" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF6B35;"></span> Avançado
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESSÃO -->
+<section style="background: var(--paper);">
+  <div class="container">
+    <div class="prog-grid">
+      <div class="prog-visual">
+        <div class="prog-mono">// EXEMPLO: CAMINHO ATÉ O RING MUSCLE-UP</div>
+        <div class="prog-row">
+          <div class="prog-move">Support Hold</div>
+          <div class="prog-track"><div class="prog-fill" style="width:100%"></div></div>
+          <div class="prog-weeks">sem 1–2</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-move">Ring Dip (Kipping)</div>
+          <div class="prog-track"><div class="prog-fill" style="width:85%"></div></div>
+          <div class="prog-weeks">sem 3–5</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-move">Ring Dip (Strict)</div>
+          <div class="prog-track"><div class="prog-fill" style="width:70%"></div></div>
+          <div class="prog-weeks">sem 6–8</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-move">False Grip Hold</div>
+          <div class="prog-track"><div class="prog-fill" style="width:55%"></div></div>
+          <div class="prog-weeks">sem 9–10</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-move">Kipping Ring MU</div>
+          <div class="prog-track"><div class="prog-fill" style="width:35%"></div></div>
+          <div class="prog-weeks">sem 11–13</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-move">Strict Ring MU</div>
+          <div class="prog-track"><div class="prog-fill" style="width:15%"></div></div>
+          <div class="prog-weeks">sem 14–16</div>
+        </div>
+      </div>
+
+      <div class="prog-text">
+        <h3>PROGRESSÃO SEM ACHISMO</h3>
+        <p>Cada coluna da planilha responde uma pergunta: <em>o que treinar esta semana para chegar mais perto do meu objetivo?</em></p>
+        <p>Nada de "faça 3 séries de 5 reps" jogado no ar. Cada semana tem uma intenção — acumular volume, testar força, ou consolidar técnica.</p>
+        <ul class="feat-list">
+          <li>Volume progressivo com deload automático na semana 4 e 8</li>
+          <li>Critérios objetivos de progressão (ex: "5 reps limpas = avance")</li>
+          <li>Alternativas para dias com limitação física ou equipamento</li>
+          <li>Compatível com programação de box (adicione ao WOD, não substitua)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREÇO -->
+<section id="preco" class="pricing-section">
+  <div class="container" style="text-align:center;">
+    <div class="mono-label" style="color:rgba(245,200,66,0.6);">// acesso único, uso para sempre</div>
+    <h2 style="color:var(--paper); margin-bottom:0.5rem;">UMA PLANILHA.<br>UMA VEZ.</h2>
+    <p class="sub" style="margin:0 auto 3rem;">Sem assinatura, sem renovação. Paga uma vez, usa pelo tempo que quiser.</p>
+
+    <div class="pricing-card">
+      <div class="pricing-top">
+        <div>
+          <h3>GYMFLOW<br>GYMNASTICS SHEET</h3>
+          <div class="price-label">ACESSO VITALÍCIO</div>
+        </div>
+        <div>
+          <div class="price-num">R$79</div>
+          <div class="price-label">pagamento único</div>
+        </div>
+      </div>
+      <div class="pricing-body">
+        <div class="pricing-item"><span class="check">✓</span> +40 movimentos ginásticos mapeados</div>
+        <div class="pricing-item"><span class="check">✓</span> Progressões de 16 semanas por skill</div>
+        <div class="pricing-item"><span class="check">✓</span> Protocolo de avaliação de nível</div>
+        <div class="pricing-item"><span class="check">✓</span> Log de treino integrado</div>
+        <div class="pricing-item"><span class="check">✓</span> Árvore de pré-requisitos visual</div>
+        <div class="pricing-item"><span class="check">✓</span> Compatível com Excel e Google Sheets</div>
+        <div class="pricing-item"><span class="check">✓</span> Atualizações gratuitas incluídas</div>
+        <div class="pricing-item"><span class="check">✓</span> Suporte por e-mail por 30 dias</div>
+        <a href="#" class="btn btn-chalk" style="width:100%; text-align:center; font-size:1.1rem; padding:0.9rem;">COMPRAR AGORA →</a>
+        <div class="pricing-note">PIX · CARTÃO · BOLETO · 7 DIAS DE GARANTIA</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPOIMENTOS -->
+<section style="background: var(--paper);">
+  <div class="container">
+    <div class="mono-label">// quem já usa</div>
+    <h2>RESULTADOS<br>REAIS</h2>
+    <p class="sub">Atletas de CrossFit e calistenia que saíram do "treinar aleatório" para o "evoluir de verdade".</p>
+
+    <div class="testi-grid">
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"Fazia pull-ups há 2 anos sem conseguir o muscle-up. Em 12 semanas seguindo a planilha, consegui meu primeiro kipping e já estou na fase strict. Finalmente entendi o que faltava."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">LM</div>
+          <div>
+            <div class="testi-name">Lucas Mendes</div>
+            <div class="testi-tag">CrossFit · 3 anos de box</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"A parte de handstand foi o que me surpreendeu. Não é só 'fique de cabeça para baixo'. Cada semana tem um foco diferente — equilíbrio, pressão, alinhamento. Em 8 semanas fui do zero para 10 segundos freestanding."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">BF</div>
+          <div>
+            <div class="testi-name">Beatriz Faria</div>
+            <div class="testi-tag">Calistenia · Iniciante intermediária</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"Coach do meu box recomendou pra todos os alunos. A lógica de pré-requisitos é perfeita — sem pular etapa, sem lesão. Já comprei pra 3 pessoas do meu grupo de treino."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">RO</div>
+          <div>
+            <div class="testi-name">Rodrigo Oliveira</div>
+            <div class="testi-tag">Coach L1 · Atleta recreational</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section style="background: var(--ink); color: var(--paper); padding: 5.5rem 2.5rem;">
+  <div class="container">
+    <div class="mono-label" style="color:rgba(245,200,66,0.6);">// dúvidas comuns</div>
+    <h2 style="color:var(--paper); margin-bottom:3rem;">PERGUNTAS<br>FREQUENTES</h2>
+    <div class="faq-list" style="--line: rgba(255,255,255,0.1);">
+      <div class="faq-item" style="border-color:rgba(255,255,255,0.1);">
+        <div class="faq-q" style="color:var(--paper);">Funciona para quem está começando do zero?</div>
+        <div class="faq-a" style="color:rgba(239,239,239,0.5);">Sim. O protocolo de avaliação inicial identifica seu ponto de partida. Você começa exatamente onde está, não onde acha que deveria estar.</div>
+      </div>
+      <div class="faq-item" style="border-color:rgba(255,255,255,0.1);">
+        <div class="faq-q" style="color:var(--paper);">Consigo usar junto com a programação do meu box?</div>
+        <div class="faq-a" style="color:rgba(239,239,239,0.5);">Sim. A planilha foi projetada para complementar, não substituir. Os treinos ginásticos ficam no aquecimento, pré-WOD ou dias de acessório — tem uma aba com sugestões de encaixe na semana.</div>
+      </div>
+      <div class="faq-item" style="border-color:rgba(255,255,255,0.1);">
+        <div class="faq-q" style="color:var(--paper);">Em qual formato vem a planilha?</div>
+        <div class="faq-a" style="color:rgba(239,239,239,0.5);">Você recebe um arquivo .xlsx compatível com Excel e Google Sheets. Funciona no celular, tablet e computador.</div>
+      </div>
+      <div class="faq-item" style="border-color:rgba(255,255,255,0.1);">
+        <div class="faq-q" style="color:var(--paper);">E se eu não gostar?</div>
+        <div class="faq-a" style="color:rgba(239,239,239,0.5);">7 dias de garantia incondicional. Pediu, devolvemos. Sem perguntas.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<div class="final-cta">
+  <div class="mono-label" style="color:rgba(13,27,42,0.5);">// sem desculpa, sem imprevisto</div>
+  <h2>PARE DE TENTAR.<br>COMECE A PROGREDIR.</h2>
+  <p>Você já treina duro. A planilha garante que cada sessão leve você um passo mais perto do movimento que você quer conquistar.</p>
+  <a href="#preco" class="btn btn-ink" style="font-size:1.1rem; padding:0.85rem 2.5rem;">QUERO A PLANILHA →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 GYMFLOW · <a href="#">Contato</a> · <a href="#">Privacidade</a> · <a href="#">Garantia de 7 dias</a></p>
+</footer>
+
+<script>
+  // Animate hero skill bars on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.skill-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.w + '%';
+      });
+      document.querySelectorAll('.skill-pct').forEach(el => {
+        el.style.opacity = '1';
+      });
+    }, 400);
+  });
+</script>
+</body>
+</html>
